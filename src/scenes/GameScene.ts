@@ -34,6 +34,11 @@ export class GameScene extends Container {
             if (this.reel.getIsSpinning()) return;
 
             this.reel.spin();
+
+            // автоматично зупиняємо через 2 секунди
+            setTimeout(() => {
+                this.reel.stop()
+            }, 2000);
         });
 
         spinButton.position.set(325, 500);
