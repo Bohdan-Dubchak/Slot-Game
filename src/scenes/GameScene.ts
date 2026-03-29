@@ -1,29 +1,41 @@
-import {Container, Graphics} from "pixi.js";
-import {Reel} from "../reels/Reels.ts";
+import { Container, Graphics } from "pixi.js";
+import { Reel } from "../reels/Reels.ts";
+import { SpinButton } from "../ui/SpinButton.ts";
 
 export class GameScene extends Container {
+    private reel!: Reel;
+
     constructor() {
         super();
 
         this.createBackground();
         this.createReel();
+        this.createUI();
     }
 
-    private createBackground() {
+    private createBackground(): void {
         const bg = new Graphics();
-        bg.rect(0,0,800,600);
+        bg.rect(0, 0, 800, 600);
         bg.fill(0x1e1e1e);
 
         this.addChild(bg);
     }
 
     private createReel(): void {
-        const reel = new Reel();
-        reel.position.set(reel.x = 350, reel.y = 50);
+        this.reel = new Reel();
 
-        this.addChild(reel);
+        this.reel.position.set(350, 50);
 
-        // запускаємо обертання
-        reel.spin()
+        this.addChild(this.reel);
+    }
+
+    private createUI(): void {
+        const spinButton = new SpinButton(() => {
+            this.reel.spin();
+        });
+
+        spinButton.position.set(325, 500);
+
+        this.addChild(spinButton);
     }
 }
