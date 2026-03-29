@@ -1,4 +1,5 @@
 import {Application, type Renderer} from 'pixi.js';
+import {GameScene} from "../scenes/GameScene.ts";
 
 export class App {
     private app: Application<Renderer>;
@@ -14,6 +15,13 @@ export class App {
         });
 
         document.body.appendChild(this.app.canvas);
+
+        this.start();
+    }
+
+    private start(): void {
+        const gameScene = new GameScene();
+        this.app.stage.addChild(gameScene);
     }
 
     get stage() {
