@@ -1,12 +1,15 @@
-import {Container, Graphics} from "pixi.js";
+import {Container, Graphics, Ticker} from "pixi.js";
 
 export class Reel extends Container {
     private symbols: Graphics[] = [];
+    private speed: number = 0;
 
     constructor() {
         super();
 
         this.createSymbols();
+
+        Ticker.shared.add(this.update, this);
     }
 
     private createSymbols(): void {
@@ -23,5 +26,20 @@ export class Reel extends Container {
         }
     }
 
+    public spin(): void {
+        this.speed = 10;
+    }
 
+    private update(): void {
+        if (this.speed <= 0) return;
+
+        for (const symbol of this.symbols) {
+            symbol.y += this.speed;
+
+            // Якщо вийшло за низ то переносимо наверх
+            if (symbol.y > 600) {
+                symbol.y = -100
+            }
+        }
+    }
 }

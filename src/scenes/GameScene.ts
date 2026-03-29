@@ -22,5 +22,8 @@ export class GameScene extends Container {
         reel.position.set(reel.x = 350, reel.y = 50);
 
         this.addChild(reel);
+
+        // запускаємо обертання
+        reel.spin()
     }
 }
