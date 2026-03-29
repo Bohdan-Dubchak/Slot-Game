@@ -31,6 +31,8 @@ export class GameScene extends Container {
 
     private createUI(): void {
         const spinButton = new SpinButton(() => {
+            if (this.reel.getIsSpinning()) return;
+
             this.reel.spin();
         });
 
