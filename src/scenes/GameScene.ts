@@ -3,13 +3,14 @@ import { Reel } from "../reels/Reels.ts";
 import { SpinButton } from "../ui/SpinButton.ts";
 
 export class GameScene extends Container {
-    private reel!: Reel;
+    private reels: Reel[] = [];
+    private reelCount = 3;
 
     constructor() {
         super();
 
         this.createBackground();
-        this.createReel();
+        this.createReels();
         this.createUI();
     }
 
@@ -21,28 +22,36 @@ export class GameScene extends Container {
         this.addChild(bg);
     }
 
-    private createReel(): void {
-        this.reel = new Reel();
+    private createReels(): void {
+        const startX = 200;
+        const gap = 150;
 
-        this.reel.position.set(350, 50);
+        for (let i = 0; i < this.reelCount; i++) {
+            const reel = new Reel();
 
-        this.addChild(this.reel);
+            reel.position.set(startX + i * gap, 50);
+
+            this.addChild(reel);
+            this.reels.push(reel);
+        }
     }
 
     private createUI(): void {
         const spinButton = new SpinButton(() => {
-            if (this.reel.getIsSpinning()) return;
+            // якщо хоча б один барабан крутиться — блокуємо
+            const isAnySpinning = this.reels.some(r => r.getIsSpinning());
+            if (isAnySpinning) return;
 
-            this.reel.spin();
+            this.reels.forEach((reel, index) => {
+                reel.spin();
 
-            // автоматично зупиняємо через 2 секунди
-            setTimeout(() => {
-                this.reel.stop()
-            }, 2000);
+                setTimeout(() => {
+                    reel.stop();
+                }, 1500 + index * 500);
+            });
         });
 
         spinButton.position.set(325, 500);
-
         this.addChild(spinButton);
     }
 }
