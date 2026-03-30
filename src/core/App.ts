@@ -1,5 +1,6 @@
 import {Application, type Renderer} from 'pixi.js';
 import {GameScene} from "../scenes/GameScene.ts";
+import {Loader} from "./Loader.ts";
 
 export class App {
     private app: Application<Renderer>;
@@ -15,6 +16,9 @@ export class App {
         });
 
         document.body.appendChild(this.app.canvas);
+
+        // чекаємо завантаження ресурсів
+        await Loader.load();
 
         this.start();
     }
