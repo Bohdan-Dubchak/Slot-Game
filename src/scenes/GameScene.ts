@@ -1,5 +1,5 @@
 import { Container, Graphics } from "pixi.js";
-import { Reel } from "../reels/Reels.ts";
+import {Reel} from "../reels/Reels.ts";
 import { SpinButton } from "../ui/SpinButton.ts";
 
 export class GameScene extends Container {
