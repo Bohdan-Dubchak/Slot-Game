@@ -1,16 +1,22 @@
 import { Container, Ticker, Sprite, Assets, Texture, Graphics } from "pixi.js";
 
+type SymbolData = {
+    id: string;
+    texture: Texture;
+};
+
 export class Reel extends Container {
     private symbols: Sprite[] = [];
-    private textures: Texture[] = [];
+    private symbolsContainer: Container;
 
     private symbolSize = 110;
-    private reelHeight = 330; // 3 видимі символи
-    private speed: number = 0;
-    private targetSpeed: number = 0;
-    private isSpinning: boolean = false;
+    private reelHeight = 330;
 
-    private symbolsContainer: Container;
+    private speed = 0;
+    private targetSpeed = 0;
+    private isSpinning = false;
+
+    private symbolMap: SymbolData[] = [];
 
     constructor() {
         super();
@@ -25,7 +31,6 @@ export class Reel extends Container {
         Ticker.shared.add(this.update, this);
     }
 
-    // (вікно барабана)
     private createMask(): void {
         const mask = new Graphics();
         mask.rect(0, 0, this.symbolSize, this.reelHeight);
@@ -36,28 +41,30 @@ export class Reel extends Container {
     }
 
     private loadTextures(): void {
-        this.textures = [
-            Assets.get('/assets/symbols/cherry.png'),
-            Assets.get('/assets/symbols/lemon.png'),
-            Assets.get('/assets/symbols/seven.png'),
-            Assets.get('/assets/symbols/bar.png'),
+        this.symbolMap = [
+            { id: "cherry", texture: Assets.get("/assets/symbols/cherry.png") },
+            { id: "lemon", texture: Assets.get("/assets/symbols/lemon.png") },
+            { id: "seven", texture: Assets.get("/assets/symbols/seven.png") },
+            { id: "bar", texture: Assets.get("/assets/symbols/bar.png") }
         ];
     }
 
-    private getRandomTexture(): Texture {
-        const index = Math.floor(Math.random() * this.textures.length);
-        return this.textures[index];
+    private getRandomSymbol(): SymbolData {
+        const index = Math.floor(Math.random() * this.symbolMap.length);
+        return this.symbolMap[index];
     }
 
     private createSymbols(): void {
-        // робимо 5 символів (щоб було що прокручувати)
         for (let i = 0; i < 5; i++) {
-            const sprite = new Sprite(this.getRandomTexture());
+            const { id, texture } = this.getRandomSymbol();
+
+            const sprite = new Sprite(texture);
 
             sprite.width = this.symbolSize;
             sprite.height = this.symbolSize;
-
             sprite.y = i * this.symbolSize;
+
+            (sprite as any).symbolId = id;
 
             this.symbols.push(sprite);
             this.symbolsContainer.addChild(sprite);
@@ -81,7 +88,6 @@ export class Reel extends Container {
     }
 
     private update(): void {
-        // плавне прискорення / гальмування
         if (this.speed < this.targetSpeed) {
             this.speed += 0.5;
         } else if (this.speed > this.targetSpeed) {
@@ -91,14 +97,15 @@ export class Reel extends Container {
         for (const symbol of this.symbols) {
             symbol.y += this.speed;
 
-            // якщо вийшов за межі — переносимо наверх
             if (symbol.y >= this.symbolSize * this.symbols.length) {
                 symbol.y -= this.symbolSize * this.symbols.length;
-                symbol.texture = this.getRandomTexture();
+
+                const { id, texture } = this.getRandomSymbol();
+                symbol.texture = texture;
+                (symbol as any).symbolId = id;
             }
         }
 
-        // SNAP TO GRID
         if (this.targetSpeed === 0 && this.speed < 0.5) {
             this.snapToGrid();
             this.speed = 0;
@@ -116,5 +123,23 @@ export class Reel extends Container {
                 symbol.y += this.symbolSize;
             }
         }
+    }
+
+    public getMiddleSymbol(): string {
+        const targetY = this.symbolSize;
+
+        let closest = this.symbols[0];
+        let minDiff = Infinity;
+
+        for (const symbol of this.symbols) {
+            const diff = Math.abs(symbol.y - targetY);
+
+            if (diff < minDiff) {
+                minDiff = diff;
+                closest = symbol;
+            }
+        }
+
+        return (closest as any).symbolId;
     }
 }
