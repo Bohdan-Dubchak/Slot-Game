@@ -1,6 +1,6 @@
 import { Container, Graphics } from "pixi.js";
 import {Reel} from "../reels/Reels.ts";
-import { SpinButton } from "../ui/SpinButton.ts";
+import { SpinButton } from "../ui/SpinButton";
 
 export class GameScene extends Container {
     private reels: Reel[] = [];
@@ -38,7 +38,6 @@ export class GameScene extends Container {
 
     private createUI(): void {
         const spinButton = new SpinButton(() => {
-            // якщо хоча б один барабан крутиться — блокуємо
             const isAnySpinning = this.reels.some(r => r.getIsSpinning());
             if (isAnySpinning) return;
 
@@ -47,11 +46,32 @@ export class GameScene extends Container {
 
                 setTimeout(() => {
                     reel.stop();
+
+                    if (index === this.reels.length - 1) {
+                        setTimeout(() => {
+                            this.checkWin();
+                        }, 300);
+                    }
+
                 }, 1500 + index * 500);
             });
         });
 
         spinButton.position.set(325, 500);
         this.addChild(spinButton);
+    }
+
+    private checkWin(): void {
+        const results = this.reels.map(r => r.getMiddleSymbol());
+
+        console.log("RESULT:", results);
+
+        const isWin = results.every(s => s === results[0]);
+
+        if (isWin) {
+            console.log("🎉 WIN!");
+        } else {
+            console.log("❌ LOSE");
+        }
     }
 }
