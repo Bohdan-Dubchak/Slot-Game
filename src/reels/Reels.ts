@@ -142,4 +142,28 @@ export class Reel extends Container {
 
         return (closest as any).symbolId;
     }
+
+    public getVisibleSymbols(): string[] {
+        const result: string[] = [];
+
+        for (let row = 0; row < 3; row++) {
+            const targetY = row * this.symbolSize;
+
+
+            let closest = this.symbols[0];
+            let minDiff = Infinity;
+
+            for (const symbol of this.symbols) {
+                const diff = Math.abs(symbol.y - targetY);
+
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    closest = symbol;
+                }
+            }
+
+            result.push((closest as any).symbolId);
+        }
+        return result;
+    }
 }
