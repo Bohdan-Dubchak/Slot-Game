@@ -62,15 +62,36 @@ export class GameScene extends Container {
     }
 
     private checkWin(): void {
-        const results = this.reels.map(r => r.getMiddleSymbol());
+        // отримуємо матрицю:
+        // [
+        //   [r1_top, r1_mid, r1_bot],
+        //   [r2_top, r2_mid, r2_bot],
+        //   [r3_top, r3_mid, r3_bot]
+        // ]
+        const matrix = this.reels.map(reel => reel.getVisibleSymbols());
 
-        console.log("RESULT:", results);
+        console.log("Matrix ", matrix);
 
-        const isWin = results.every(s => s === results[0]);
+        const playlines = [
+            [0, 0, 0], // верхня
+            [1, 1, 1], // середня
+            [2, 2, 2], // нижня
+        ];
 
-        if (isWin) {
-            console.log("🎉 WIN!");
-        } else {
+        let winLines = 0;
+
+        playlines.forEach((line, index) => {
+            const symbols = line.map((row, reelIndex) => matrix[reelIndex][row]);
+
+            const isWin = symbols.every(s => s === symbols[0]);
+
+            if (isWin) {
+                winLines++;
+                console.log(`🎉 WIN LINE ${index + 1}`, symbols);
+            }
+        });
+
+        if (winLines === 0) {
             console.log("❌ LOSE");
         }
     }
