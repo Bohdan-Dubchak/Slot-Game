@@ -6,6 +6,9 @@ export class GameScene extends Container {
     private reels: Reel[] = [];
     private reelCount = 3;
 
+    private balance: number = 1000;
+    private bar: number = 100;
+
     constructor() {
         super();
 
@@ -41,6 +44,16 @@ export class GameScene extends Container {
             const isAnySpinning = this.reels.some(r => r.getIsSpinning());
             if (isAnySpinning) return;
 
+            // ❗ перевірка балансу
+            if (this.balance < this.bar) {
+                console.log('❌ Not enough balance');
+                return;
+            }
+
+            // списуємо ставку
+            this.balance -= this.bar;
+            console.log("Balance: ", this.balance);
+
             this.reels.forEach((reel, index) => {
                 reel.spin();
 
@@ -61,6 +74,13 @@ export class GameScene extends Container {
         this.addChild(spinButton);
     }
 
+    private paytabl: Record<string, number> = {
+        cherry: 2,
+        lemon: 3,
+        bar: 5,
+        seven: 10,
+    }
+
     private checkWin(): void {
         // отримуємо матрицю:
         // [
@@ -78,21 +98,31 @@ export class GameScene extends Container {
             [2, 2, 2], // нижня
         ];
 
-        let winLines = 0;
+        let totalWin = 0;
 
-        playlines.forEach((line, index) => {
+        playlines.forEach((line) => {
             const symbols = line.map((row, reelIndex) => matrix[reelIndex][row]);
 
             const isWin = symbols.every(s => s === symbols[0]);
 
             if (isWin) {
-                winLines++;
-                console.log(`🎉 WIN LINE ${index + 1}`, symbols);
+               const symbol = symbols[0];
+               const multiplier = this.paytabl[symbol] || 0;
+
+               const win = this.bar * multiplier;
+
+               totalWin += win;
+
+               console.log(`🎉 WIN: ${symbol} x${multiplier} = ${win}`);
             }
         });
 
-        if (winLines === 0) {
-            console.log("❌ LOSE");
+        if (totalWin > 0) {
+            this.balance += totalWin;
+            console.log("💰 TOTAL WIN:", totalWin);
+        } else {
+            console.log("💰 TOTAL WIN:", totalWin);
         }
+        console.log("BALANCE:", this.balance);
     }
 }
