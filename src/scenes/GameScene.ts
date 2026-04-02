@@ -1,4 +1,4 @@
-import { Container, Graphics } from "pixi.js";
+import { Container, Graphics, Text, TextStyle } from "pixi.js";
 import {Reel} from "../reels/Reels.ts";
 import { SpinButton } from "../ui/SpinButton";
 
@@ -7,7 +7,10 @@ export class GameScene extends Container {
     private reelCount = 3;
 
     private balance: number = 1000;
-    private bar: number = 100;
+    private bet: number = 100;
+
+    private balenceText!: Text;
+    private betText!: Text;
 
     constructor() {
         super();
@@ -15,6 +18,7 @@ export class GameScene extends Container {
         this.createBackground();
         this.createReels();
         this.createUI();
+        this.createHUD();
     }
 
     private createBackground(): void {
@@ -45,13 +49,14 @@ export class GameScene extends Container {
             if (isAnySpinning) return;
 
             // ❗ перевірка балансу
-            if (this.balance < this.bar) {
+            if (this.balance < this.bet) {
                 console.log('❌ Not enough balance');
                 return;
             }
 
             // списуємо ставку
-            this.balance -= this.bar;
+            this.balance -= this.bet;
+            this.updateHUD()
             console.log("Balance: ", this.balance);
 
             this.reels.forEach((reel, index) => {
@@ -72,6 +77,34 @@ export class GameScene extends Container {
 
         spinButton.position.set(325, 500);
         this.addChild(spinButton);
+    }
+
+    private createHUD(): void {
+        const style = new TextStyle({
+            fontSize: 20,
+            fill: '#ffffff',
+            fontWeight: 'bold',
+        });
+
+        this.balenceText = new Text({
+            text: `Balance: ${this.balance}`,
+            style,
+        });
+
+        this.betText = new Text({
+            text: `Bet: ${this.bet}`,
+            style,
+        });
+
+        this.balenceText.position.set(20, 20);
+        this.betText.position.set(20, 50);
+
+        this.addChild(this.balenceText, this.betText);
+    }
+
+    private updateHUD(): void {
+        this.balenceText.text = `Balance: ${this.balance}`;
+        this.betText.text = `Bet: ${this.bet}`
     }
 
     private paytabl: Record<string, number> = {
@@ -109,7 +142,7 @@ export class GameScene extends Container {
                const symbol = symbols[0];
                const multiplier = this.paytabl[symbol] || 0;
 
-               const win = this.bar * multiplier;
+               const win = this.bet * multiplier;
 
                totalWin += win;
 
@@ -121,7 +154,7 @@ export class GameScene extends Container {
             this.balance += totalWin;
             console.log("💰 TOTAL WIN:", totalWin);
         } else {
-            console.log("💰 TOTAL WIN:", totalWin);
+            console.log("❌ LOSE")
         }
         console.log("BALANCE:", this.balance);
     }
