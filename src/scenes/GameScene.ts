@@ -12,6 +12,8 @@ export class GameScene extends Container {
     private balenceText!: Text;
     private betText!: Text;
 
+    private winLineGraphics: Graphics;
+
     constructor() {
         super();
 
@@ -19,6 +21,9 @@ export class GameScene extends Container {
         this.createReels();
         this.createUI();
         this.createHUD();
+
+        this.winLineGraphics = new Graphics();
+        this.addChild(this.winLineGraphics);
     }
 
     private createBackground(): void {
@@ -44,6 +49,7 @@ export class GameScene extends Container {
     }
 
     private createUI(): void {
+
         const spinButton = new SpinButton(() => {
             const isAnySpinning = this.reels.some(r => r.getIsSpinning());
             if (isAnySpinning) return;
@@ -53,6 +59,8 @@ export class GameScene extends Container {
                 console.log('❌ Not enough balance');
                 return;
             }
+
+        this.winLineGraphics.clear();
 
             // списуємо ставку
             this.balance -= this.bet;
@@ -139,6 +147,8 @@ export class GameScene extends Container {
             const isWin = symbols.every(s => s === symbols[0]);
 
             if (isWin) {
+                this.drawWinLine(line[0]);
+
                const symbol = symbols[0];
                const multiplier = this.paytabl[symbol] || 0;
 
@@ -152,10 +162,27 @@ export class GameScene extends Container {
 
         if (totalWin > 0) {
             this.balance += totalWin;
+            this.updateHUD();
             console.log("💰 TOTAL WIN:", totalWin);
         } else {
             console.log("❌ LOSE")
         }
         console.log("BALANCE:", this.balance);
+    }
+
+    private drawWinLine(row: number): void {
+        this.winLineGraphics.clear();
+
+        const startX = 200;
+        const gap = 205;
+        const y = 50 + row * 105 + 55;
+
+        this.winLineGraphics.moveTo(startX, y);
+        this.winLineGraphics.lineTo(startX + gap * (this.reels.length - 1), y);
+
+        this.winLineGraphics.stroke({
+            width: 5,
+            color: 0xffff00
+        })
     }
 }
