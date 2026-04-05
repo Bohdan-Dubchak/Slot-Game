@@ -1,4 +1,4 @@
-import { Container, Graphics, Text, TextStyle } from "pixi.js";
+import {Container, Graphics, type Sprite, Text, TextStyle} from "pixi.js";
 import {Reel} from "../reels/Reels.ts";
 import { SpinButton } from "../ui/SpinButton";
 
@@ -6,7 +6,7 @@ export class GameScene extends Container {
     private reels: Reel[] = [];
     private reelCount = 3;
 
-    private balance: number = 1000;
+    private balance: number = 10000000;
     private bet: number = 100;
 
     private balenceText!: Text;
@@ -24,6 +24,23 @@ export class GameScene extends Container {
 
         this.winLineGraphics = new Graphics();
         this.addChild(this.winLineGraphics);
+    }
+
+    // Анімація виграшу
+    private animateWinSymbols(symbols: Sprite[]): void {
+        // Анімація: пульсація всіх символів в лінії
+        symbols.forEach((sprite) => {
+            const originalScale = sprite.scale.x;
+
+            const pulse = () => {
+                sprite.scale.set(originalScale * 0.9);
+                setTimeout(() => {
+                    sprite.scale.set(originalScale);
+                }, 300)
+            }
+
+            pulse();
+        })
     }
 
     private createBackground(): void {
@@ -156,7 +173,12 @@ export class GameScene extends Container {
 
                totalWin += win;
 
-               console.log(`🎉 WIN: ${symbol} x${multiplier} = ${win}`);
+                // отримати спрайти для анімації
+                const winSprites = this.reels.map((reel, i) => reel.getVisibleSymbolsSprites()[line[i]]);
+
+                this.animateWinSymbols(winSprites);
+
+                console.log(`🎉 WIN: ${symbol} x${multiplier} = ${win}`);
             }
         });
 
