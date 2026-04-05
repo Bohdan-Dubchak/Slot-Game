@@ -1,15 +1,16 @@
 import {Container, Graphics, type Sprite, Text, TextStyle} from "pixi.js";
 import {Reel} from "../reels/Reels.ts";
 import { SpinButton } from "../ui/SpinButton";
+import { BetButton} from "../ui/BetButton.ts";
 
 export class GameScene extends Container {
     private reels: Reel[] = [];
     private reelCount = 3;
 
-    private balance: number = 10000000;
-    private bet: number = 100;
+    private balance: number = 100;
+    private bet: number = 5;
 
-    private balenceText!: Text;
+    private balanceText!: Text;
     private betText!: Text;
 
     private winLineGraphics: Graphics;
@@ -67,6 +68,24 @@ export class GameScene extends Container {
 
     private createUI(): void {
 
+        // нові кнопки ставки
+        const plusButton = new BetButton('+', () => {
+            this.bet += 5; // Збільшує ставку на 5
+            if (this.bet > this.balance) this.bet = this.balance + 5; // не більше балансу
+            this.updateHUD();
+        });
+
+        const minusButton = new BetButton("-", () => {
+            this.bet -= 5;
+            if (this.bet < 5) this.bet = 5
+            this.updateHUD();
+        });
+
+        plusButton.position.set(120, 50);
+        minusButton.position.set(60, 50);
+
+        this.addChild(plusButton, minusButton);
+
         const spinButton = new SpinButton(() => {
             const isAnySpinning = this.reels.some(r => r.getIsSpinning());
             if (isAnySpinning) return;
@@ -111,7 +130,7 @@ export class GameScene extends Container {
             fontWeight: 'bold',
         });
 
-        this.balenceText = new Text({
+        this.balanceText = new Text({
             text: `Balance: ${this.balance}`,
             style,
         });
@@ -121,14 +140,14 @@ export class GameScene extends Container {
             style,
         });
 
-        this.balenceText.position.set(20, 20);
+        this.balanceText.position.set(20, 20);
         this.betText.position.set(20, 50);
 
-        this.addChild(this.balenceText, this.betText);
+        this.addChild(this.balanceText, this.betText);
     }
 
     private updateHUD(): void {
-        this.balenceText.text = `Balance: ${this.balance}`;
+        this.balanceText.text = `Balance: ${this.balance}`;
         this.betText.text = `Bet: ${this.bet}`
     }
 
