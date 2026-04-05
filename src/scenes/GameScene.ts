@@ -13,6 +13,8 @@ export class GameScene extends Container {
     private balanceText!: Text;
     private betText!: Text;
 
+    private winText!: Text;
+
     private winLineGraphics: Graphics;
 
     constructor() {
@@ -124,6 +126,26 @@ export class GameScene extends Container {
     }
 
     private createHUD(): void {
+        const winStyle = new TextStyle({
+            fontSize: 48,
+            fill: "#ffd700",
+            fontWeight: "bold",
+        });
+
+        this.winText = new Text({
+            text: "",
+            style: winStyle
+        });
+
+        this.winText.anchor.set(0.5);
+        this.winText.x = 400;
+        this.winText.y = 300;
+
+        this.winText.visible = false;
+
+        this.addChild(this.winText);
+
+        //-----------------------------------------------
         const style = new TextStyle({
             fontSize: 20,
             fill: '#ffffff',
@@ -144,6 +166,34 @@ export class GameScene extends Container {
         this.betText.position.set(80, 512);
 
         this.addChild(this.balanceText, this.betText);
+    }
+
+    private showWin(amount: number): void {
+        this.winText.text = `WIN +${amount}`
+        this.winText.visible = true;
+
+        this.winText.alpha = 0;
+        this.winText.scale.set(0.5);
+
+        // проста анімація
+        let step = 0;
+
+        const interval = setInterval(() => {
+            step++;
+
+            this.winText.alpha += 0.1;
+            this.winText.scale.x += 0.05;
+            this.winText.scale.y += 0.05;
+
+            if (step > 10) {
+                clearInterval(interval);
+
+                // через 1,5 сек сховати
+                setTimeout(() => {
+                    this.winText.visible = false;
+                }, 1500);
+            }
+        }, 30);
     }
 
     private updateHUD(): void {
@@ -204,7 +254,7 @@ export class GameScene extends Container {
         if (totalWin > 0) {
             this.balance += totalWin;
             this.updateHUD();
-            console.log("💰 TOTAL WIN:", totalWin);
+            this.showWin(totalWin);
         } else {
             console.log("❌ LOSE")
         }
