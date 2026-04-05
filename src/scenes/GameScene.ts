@@ -1,11 +1,10 @@
-import {Container, Graphics, type Sprite, Text, TextStyle} from "pixi.js";
-import {Reel} from "../reels/Reels.ts";
+import { Container, Graphics, type Sprite, Text, TextStyle } from "pixi.js";
+import { ReelsContainer } from "../reels/ReelsContainer";
 import { SpinButton } from "../ui/SpinButton";
-import { BetButton} from "../ui/BetButton.ts";
+import { BetButton } from "../ui/BetButton";
 
 export class GameScene extends Container {
-    private reels: Reel[] = [];
-    private reelCount = 3;
+    private reelsContainer!: ReelsContainer;
 
     private balance: number = 100;
     private bet: number = 5;
@@ -29,21 +28,17 @@ export class GameScene extends Container {
         this.addChild(this.winLineGraphics);
     }
 
-    // Анімація виграшу
+    // 🎯 Анімація виграшу
     private animateWinSymbols(symbols: Sprite[]): void {
-        // Анімація: пульсація всіх символів в лінії
         symbols.forEach((sprite) => {
             const originalScale = sprite.scale.x;
 
-            const pulse = () => {
-                sprite.scale.set(originalScale * 0.9);
-                setTimeout(() => {
-                    sprite.scale.set(originalScale);
-                }, 300)
-            }
+            sprite.scale.set(originalScale * 0.9);
 
-            pulse();
-        })
+            setTimeout(() => {
+                sprite.scale.set(originalScale);
+            }, 300);
+        });
     }
 
     private createBackground(): void {
@@ -54,32 +49,27 @@ export class GameScene extends Container {
         this.addChild(bg);
     }
 
+    // ✅ ТЕПЕР ВСЕ ЧЕРЕЗ ReelsContainer
     private createReels(): void {
-        const startX = 200;
-        const gap = 150;
+        this.reelsContainer = new ReelsContainer(3);
 
-        for (let i = 0; i < this.reelCount; i++) {
-            const reel = new Reel();
+        this.reelsContainer.position.set(200, 50);
 
-            reel.position.set(startX + i * gap, 50);
-
-            this.addChild(reel);
-            this.reels.push(reel);
-        }
+        this.addChild(this.reelsContainer);
     }
 
     private createUI(): void {
-
-        // нові кнопки ставки
-        const plusButton = new BetButton('+', () => {
-            this.bet += 5; // Збільшує ставку на 5
-            if (this.bet > this.balance) this.bet = this.balance + 5; // не більше балансу
+        // ➕
+        const plusButton = new BetButton("+", () => {
+            this.bet += 5;
+            if (this.bet > this.balance) this.bet = this.balance;
             this.updateHUD();
         });
 
+        // ➖
         const minusButton = new BetButton("-", () => {
             this.bet -= 5;
-            if (this.bet < 5) this.bet = 5
+            if (this.bet < 5) this.bet = 5;
             this.updateHUD();
         });
 
@@ -88,36 +78,22 @@ export class GameScene extends Container {
 
         this.addChild(plusButton, minusButton);
 
+        // 🎰 SPIN
         const spinButton = new SpinButton(() => {
-            const isAnySpinning = this.reels.some(r => r.getIsSpinning());
-            if (isAnySpinning) return;
+            if (this.reelsContainer.isAnySpinning()) return;
 
-            // ❗ перевірка балансу
             if (this.balance < this.bet) {
-                console.log('❌ Not enough balance');
+                console.log("❌ Not enough balance");
                 return;
             }
 
-        this.winLineGraphics.clear();
+            this.winLineGraphics.clear();
 
-            // списуємо ставку
             this.balance -= this.bet;
-            this.updateHUD()
-            console.log("Balance: ", this.balance);
+            this.updateHUD();
 
-            this.reels.forEach((reel, index) => {
-                reel.spin();
-
-                setTimeout(() => {
-                    reel.stop();
-
-                    if (index === this.reels.length - 1) {
-                        setTimeout(() => {
-                            this.checkWin();
-                        }, 300);
-                    }
-
-                }, 1500 + index * 500);
+            this.reelsContainer.spinAll(() => {
+                this.checkWin();
             });
         });
 
@@ -134,22 +110,21 @@ export class GameScene extends Container {
 
         this.winText = new Text({
             text: "",
-            style: winStyle
+            style: winStyle,
         });
 
         this.winText.anchor.set(0.5);
-        this.winText.x = 400;
-        this.winText.y = 300;
-
+        this.winText.position.set(400, 300);
         this.winText.visible = false;
 
         this.addChild(this.winText);
 
-        //-----------------------------------------------
+        //--------------------------------
+
         const style = new TextStyle({
             fontSize: 20,
-            fill: '#ffffff',
-            fontWeight: 'bold',
+            fill: "#ffffff",
+            fontWeight: "bold",
         });
 
         this.balanceText = new Text({
@@ -169,13 +144,12 @@ export class GameScene extends Container {
     }
 
     private showWin(amount: number): void {
-        this.winText.text = `WIN +${amount}`
+        this.winText.text = `WIN +${amount}`;
         this.winText.visible = true;
 
         this.winText.alpha = 0;
         this.winText.scale.set(0.5);
 
-        // проста анімація
         let step = 0;
 
         const interval = setInterval(() => {
@@ -188,7 +162,6 @@ export class GameScene extends Container {
             if (step > 10) {
                 clearInterval(interval);
 
-                // через 1,5 сек сховати
                 setTimeout(() => {
                     this.winText.visible = false;
                 }, 1500);
@@ -198,56 +171,49 @@ export class GameScene extends Container {
 
     private updateHUD(): void {
         this.balanceText.text = `Balance: ${this.balance}`;
-        this.betText.text = `Bet: ${this.bet}`
+        this.betText.text = `Bet: ${this.bet}`;
     }
 
-    private paytabl: Record<string, number> = {
+    private paytable: Record<string, number> = {
         cherry: 2,
         lemon: 3,
         bar: 5,
         seven: 10,
-    }
+    };
 
     private checkWin(): void {
-        // отримуємо матрицю:
-        // [
-        //   [r1_top, r1_mid, r1_bot],
-        //   [r2_top, r2_mid, r2_bot],
-        //   [r3_top, r3_mid, r3_bot]
-        // ]
-        const matrix = this.reels.map(reel => reel.getVisibleSymbols());
+        const reels = this.reelsContainer.getReels();
 
-        console.log("Matrix ", matrix);
+        const matrix = reels.map((reel) => reel.getVisibleSymbols());
 
-        const playlines = [
-            [0, 0, 0], // верхня
-            [1, 1, 1], // середня
-            [2, 2, 2], // нижня
+        const paylines = [
+            [0, 0, 0],
+            [1, 1, 1],
+            [2, 2, 2],
         ];
 
         let totalWin = 0;
 
-        playlines.forEach((line) => {
+        paylines.forEach((line) => {
             const symbols = line.map((row, reelIndex) => matrix[reelIndex][row]);
 
-            const isWin = symbols.every(s => s === symbols[0]);
+            const isWin = symbols.every((s) => s === symbols[0]);
 
             if (isWin) {
                 this.drawWinLine(line[0]);
 
-               const symbol = symbols[0];
-               const multiplier = this.paytabl[symbol] || 0;
+                const symbol = symbols[0];
+                const multiplier = this.paytable[symbol] || 0;
 
-               const win = this.bet * multiplier;
+                const win = this.bet * multiplier;
+                totalWin += win;
 
-               totalWin += win;
-
-                // отримати спрайти для анімації
-                const winSprites = this.reels.map((reel, i) => reel.getVisibleSymbolsSprites()[line[i]]);
+                // 🎯 отримуємо спрайти
+                const winSprites = reels.map((reel, i) =>
+                    reel.getVisibleSymbolsSprites()[line[i]]
+                );
 
                 this.animateWinSymbols(winSprites);
-
-                console.log(`🎉 WIN: ${symbol} x${multiplier} = ${win}`);
             }
         });
 
@@ -256,9 +222,8 @@ export class GameScene extends Container {
             this.updateHUD();
             this.showWin(totalWin);
         } else {
-            console.log("❌ LOSE")
+            console.log("❌ LOSE");
         }
-        console.log("BALANCE:", this.balance);
     }
 
     private drawWinLine(row: number): void {
@@ -269,11 +234,11 @@ export class GameScene extends Container {
         const y = 50 + row * 105 + 55;
 
         this.winLineGraphics.moveTo(startX, y);
-        this.winLineGraphics.lineTo(startX + gap * (this.reels.length - 1), y);
+        this.winLineGraphics.lineTo(startX + gap * 2, y);
 
         this.winLineGraphics.stroke({
             width: 5,
-            color: 0xffff00
-        })
+            color: 0xffff00,
+        });
     }
 }
