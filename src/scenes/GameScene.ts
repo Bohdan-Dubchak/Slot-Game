@@ -81,8 +81,8 @@ export class GameScene extends Container {
             this.updateHUD();
         });
 
-        plusButton.position.set(120, 50);
-        minusButton.position.set(60, 50);
+        plusButton.position.set(200, 500);
+        minusButton.position.set(20, 500);
 
         this.addChild(plusButton, minusButton);
 
@@ -140,8 +140,8 @@ export class GameScene extends Container {
             style,
         });
 
-        this.balanceText.position.set(20, 20);
-        this.betText.position.set(20, 50);
+        this.balanceText.position.set(600, 512);
+        this.betText.position.set(80, 512);
 
         this.addChild(this.balanceText, this.betText);
     }
