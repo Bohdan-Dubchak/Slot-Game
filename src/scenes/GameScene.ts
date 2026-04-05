@@ -1,4 +1,5 @@
-import { Container, Graphics, type Sprite, Text, TextStyle } from "pixi.js";
+import { Container, Graphics, type Sprite, Text, TextStyle, Ticker } from "pixi.js";
+import { GlowFilter } from "@pixi/filter-glow";
 import { ReelsContainer } from "../reels/ReelsContainer";
 import { SpinButton } from "../ui/SpinButton";
 import { BetButton } from "../ui/BetButton";
@@ -28,16 +29,65 @@ export class GameScene extends Container {
         this.addChild(this.winLineGraphics);
     }
 
-    // 🎯 Анімація виграшу
+     // ПУЛЬС СИМВОЛІВ
     private animateWinSymbols(symbols: Sprite[]): void {
         symbols.forEach((sprite) => {
             const originalScale = sprite.scale.x;
+            let step = 0;
+            const duration = 15;
 
-            sprite.scale.set(originalScale * 0.9);
+            const ticker = new Ticker();
+            ticker.add(() => {
+                step++;
+                const progress = step / duration;
 
-            setTimeout(() => {
-                sprite.scale.set(originalScale);
-            }, 300);
+                // Пульсація: збільшення -> повернення
+                const scale = originalScale * (1 + Math.sin(progress * Math.PI) * 0.3);
+                sprite.scale.set(scale);
+
+                if (step >= duration) {
+                    ticker.stop();
+                    ticker.destroy();
+                    sprite.scale.set(originalScale);
+                }
+            });
+            ticker.start();
+        });
+    }
+
+    // GLOW
+    private highlightWinSymbols(symbols: Sprite[]): void {
+        symbols.forEach(sprite => {
+            // Створюємо фільтр
+            const glow = new GlowFilter({
+                distance: 15,
+                outerStrength: 4,
+                innerStrength: 0,
+                color: 0x33ff55,
+                quality: 0.5
+            });
+
+            glow.padding = 20;
+
+            sprite.filters = [glow as any];
+
+            let step = 0;
+            const maxSteps = 120;
+
+            const update = (ticker: Ticker) => {
+                // Використовуємо deltaTime для стабільності анімації
+                step += ticker.deltaTime;
+
+                // Анімація пульсації
+                glow.outerStrength = 4 + Math.sin(step * 0.2) * 2;
+
+                if (step > maxSteps) {
+                    Ticker.shared.remove(update);
+                    sprite.filters = null; // Очищуємо фільтри правильно
+                }
+            };
+
+            Ticker.shared.add(update);
         });
     }
 
@@ -49,24 +99,20 @@ export class GameScene extends Container {
         this.addChild(bg);
     }
 
-    // ✅ ТЕПЕР ВСЕ ЧЕРЕЗ ReelsContainer
     private createReels(): void {
         this.reelsContainer = new ReelsContainer(3);
-
         this.reelsContainer.position.set(200, 50);
 
         this.addChild(this.reelsContainer);
     }
 
     private createUI(): void {
-        // ➕
         const plusButton = new BetButton("+", () => {
             this.bet += 5;
             if (this.bet > this.balance) this.bet = this.balance;
             this.updateHUD();
         });
 
-        // ➖
         const minusButton = new BetButton("-", () => {
             this.bet -= 5;
             if (this.bet < 5) this.bet = 5;
@@ -78,7 +124,6 @@ export class GameScene extends Container {
 
         this.addChild(plusButton, minusButton);
 
-        // 🎰 SPIN
         const spinButton = new SpinButton(() => {
             if (this.reelsContainer.isAnySpinning()) return;
 
@@ -119,8 +164,6 @@ export class GameScene extends Container {
 
         this.addChild(this.winText);
 
-        //--------------------------------
-
         const style = new TextStyle({
             fontSize: 20,
             fill: "#ffffff",
@@ -146,27 +189,30 @@ export class GameScene extends Container {
     private showWin(amount: number): void {
         this.winText.text = `WIN +${amount}`;
         this.winText.visible = true;
-
         this.winText.alpha = 0;
         this.winText.scale.set(0.5);
 
         let step = 0;
+        const duration = 15;
 
-        const interval = setInterval(() => {
+        const ticker = new Ticker();
+        ticker.add(() => {
             step++;
 
-            this.winText.alpha += 0.1;
-            this.winText.scale.x += 0.05;
-            this.winText.scale.y += 0.05;
+            this.winText.alpha = Math.min(1, step / duration);
+            const scale = 0.5 + (step / duration) * 0.5;
+            this.winText.scale.set(scale);
 
-            if (step > 10) {
-                clearInterval(interval);
+            if (step >= duration) {
+                ticker.stop();
+                ticker.destroy();
 
                 setTimeout(() => {
                     this.winText.visible = false;
                 }, 1500);
             }
-        }, 30);
+        });
+        ticker.start();
     }
 
     private updateHUD(): void {
@@ -183,7 +229,6 @@ export class GameScene extends Container {
 
     private checkWin(): void {
         const reels = this.reelsContainer.getReels();
-
         const matrix = reels.map((reel) => reel.getVisibleSymbols());
 
         const paylines = [
@@ -208,11 +253,11 @@ export class GameScene extends Container {
                 const win = this.bet * multiplier;
                 totalWin += win;
 
-                // 🎯 отримуємо спрайти
                 const winSprites = reels.map((reel, i) =>
                     reel.getVisibleSymbolsSprites()[line[i]]
                 );
 
+                this.highlightWinSymbols(winSprites);
                 this.animateWinSymbols(winSprites);
             }
         });
@@ -227,8 +272,6 @@ export class GameScene extends Container {
     }
 
     private drawWinLine(row: number): void {
-        this.winLineGraphics.clear();
-
         const startX = 200;
         const gap = 205;
         const y = 50 + row * 105 + 55;
