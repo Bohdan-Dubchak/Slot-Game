@@ -1,5 +1,6 @@
-import { Container, Graphics, type Sprite, Text, TextStyle, Ticker } from "pixi.js";
-import { GlowFilter } from "@pixi/filter-glow";
+import { Container,  Sprite, Text, TextStyle, Ticker, Assets} from "pixi.js";
+import {gsap } from "gsap";
+import {GlowFilter } from "@pixi/filter-glow"
 import { ReelsContainer } from "../reels/ReelsContainer";
 import { SpinButton } from "../ui/SpinButton";
 import { BetButton } from "../ui/BetButton";
@@ -15,21 +16,38 @@ export class GameScene extends Container {
 
     private winText!: Text;
 
-    private winLineGraphics: Graphics;
 
     constructor() {
         super();
 
-        this.createBackground();
-        this.createReels();
-        this.createUI();
-        this.createHUD();
-
-        this.winLineGraphics = new Graphics();
-        this.addChild(this.winLineGraphics);
+        this.init();
     }
 
-     // ПУЛЬС СИМВОЛІВ
+    // Завантажує фон та ініціалізує всі елементи сцени
+    private async init(): Promise<void> {
+        await Assets.load('/assets/Fon/BackgroundImage.png');
+
+        this.createBackgroundImage(); //  Фото (задній план)
+        this.createReels();           //  Барабани
+        this.createUI();              //  Кнопки
+        this.createHUD();             //  Текст
+    }
+
+    //  Фото задній
+    private createBackgroundImage(): void {
+        const texture = Assets.get('/assets/Fon/BackgroundImage.png');
+        const bgSprite = new Sprite(texture);
+
+        bgSprite.width = 800;
+        bgSprite.height = 600;
+        bgSprite.x = 0;
+        bgSprite.y = 0;
+
+        this.addChild(bgSprite);
+    }
+
+    // Анімація пульсації виграшних символів
+    // @ts-ignore
     private animateWinSymbols(symbols: Sprite[]): void {
         symbols.forEach((sprite) => {
             const originalScale = sprite.scale.x;
@@ -55,50 +73,36 @@ export class GameScene extends Container {
         });
     }
 
-    // GLOW
+    // Виділяє виграшні символи зеленим світінням (Glow) з анімацією пульсації  !!! --не працює--
+    // @ts-ignore
     private highlightWinSymbols(symbols: Sprite[]): void {
-        symbols.forEach(sprite => {
-            // Створюємо фільтр
-            const glow = new GlowFilter({
-                distance: 15,
-                outerStrength: 4,
-                innerStrength: 0,
-                color: 0x33ff55,
-                quality: 0.5
-            });
-
-            glow.padding = 20;
-
-            sprite.filters = [glow as any];
-
-            let step = 0;
-            const maxSteps = 120;
-
-            const update = (ticker: Ticker) => {
-                // Використовуємо deltaTime для стабільності анімації
-                step += ticker.deltaTime;
-
-                // Анімація пульсації
-                glow.outerStrength = 4 + Math.sin(step * 0.2) * 2;
-
-                if (step > maxSteps) {
-                    Ticker.shared.remove(update);
-                    sprite.filters = null; // Очищуємо фільтри правильно
-                }
-            };
-
-            Ticker.shared.add(update);
+    symbols.forEach(sprite => {
+        // Створюємо Glow фільтр один раз
+        const glow = new GlowFilter({
+            distance: 15,
+            outerStrength: 4,
+            innerStrength: 0,
+            color: 0x33ff55,
+            quality: 0.5,
         });
-    }
+        glow.padding = 20;
+        sprite.filters = [glow as any];
 
-    private createBackground(): void {
-        const bg = new Graphics();
-        bg.rect(0, 0, 800, 600);
-        bg.fill(0x1e1e1e);
+        // Анімація пульсації outerStrength через Tween
+        gsap.to(glow, {
+            outerStrength: 6,       // максимальна сила світіння
+            duration: 0.3,          // тривалість одного циклу
+            yoyo: true,             // назад
+            repeat: 5,              // кількість пульсацій
+            ease: "sine.inOut",     // плавна функція easing
+            onComplete: () => {
+                sprite.filters = null; // прибираємо Glow після анімації
+            }
+        });
+    });
+}
 
-        this.addChild(bg);
-    }
-
+    // Створює об’єкт ReelsContainer та додає його у сцену
     private createReels(): void {
         this.reelsContainer = new ReelsContainer(3);
         this.reelsContainer.position.set(200, 50);
@@ -106,13 +110,16 @@ export class GameScene extends Container {
         this.addChild(this.reelsContainer);
     }
 
+    // Створює UI кнопки: ставка плюс/мінус та спін
     private createUI(): void {
+        // Кнопка збільшення ставки
         const plusButton = new BetButton("+", () => {
             this.bet += 5;
             if (this.bet > this.balance) this.bet = this.balance;
             this.updateHUD();
         });
 
+        // Кнопка зменшення ставки
         const minusButton = new BetButton("-", () => {
             this.bet -= 5;
             if (this.bet < 5) this.bet = 5;
@@ -124,6 +131,7 @@ export class GameScene extends Container {
 
         this.addChild(plusButton, minusButton);
 
+        // Кнопка спіну
         const spinButton = new SpinButton(() => {
             if (this.reelsContainer.isAnySpinning()) return;
 
@@ -132,13 +140,13 @@ export class GameScene extends Container {
                 return;
             }
 
-            this.winLineGraphics.clear();
-
+            // Віднімаємо ставку з балансу
             this.balance -= this.bet;
             this.updateHUD();
 
+            // Запускаємо спін усіх барабанів
             this.reelsContainer.spinAll(() => {
-                this.checkWin();
+                this.checkWin(); // Перевіряємо виграш після зупинки
             });
         });
 
@@ -146,10 +154,11 @@ export class GameScene extends Container {
         this.addChild(spinButton);
     }
 
+    // Створює HUD (текстові елементи: баланс, ставка, повідомлення про виграш)
     private createHUD(): void {
         const winStyle = new TextStyle({
-            fontSize: 48,
-            fill: "#ffd700",
+            fontSize: 100,
+            fill: "#15448a",
             fontWeight: "bold",
         });
 
@@ -186,6 +195,7 @@ export class GameScene extends Container {
         this.addChild(this.balanceText, this.betText);
     }
 
+    // Показує анімацію виграшу на екрані
     private showWin(amount: number): void {
         this.winText.text = `WIN +${amount}`;
         this.winText.visible = true;
@@ -215,11 +225,13 @@ export class GameScene extends Container {
         ticker.start();
     }
 
+    // Оновлює HUD (баланс і ставка)
     private updateHUD(): void {
         this.balanceText.text = `Balance: ${this.balance}`;
         this.betText.text = `Bet: ${this.bet}`;
     }
 
+    // Таблиця виплат (paytable) для символів
     private paytable: Record<string, number> = {
         cherry: 2,
         lemon: 3,
@@ -227,6 +239,7 @@ export class GameScene extends Container {
         seven: 10,
     };
 
+    // Перевіряє виграш по лініях, виділяє та анімує виграшні символи, оновлює баланс
     private checkWin(): void {
         const reels = this.reelsContainer.getReels();
         const matrix = reels.map((reel) => reel.getVisibleSymbols());
@@ -245,8 +258,6 @@ export class GameScene extends Container {
             const isWin = symbols.every((s) => s === symbols[0]);
 
             if (isWin) {
-                this.drawWinLine(line[0]);
-
                 const symbol = symbols[0];
                 const multiplier = this.paytable[symbol] || 0;
 
@@ -257,7 +268,7 @@ export class GameScene extends Container {
                     reel.getVisibleSymbolsSprites()[line[i]]
                 );
 
-                this.highlightWinSymbols(winSprites);
+                // this.highlightWinSymbols(winSprites);
                 this.animateWinSymbols(winSprites);
             }
         });
@@ -269,19 +280,5 @@ export class GameScene extends Container {
         } else {
             console.log("❌ LOSE");
         }
-    }
-
-    private drawWinLine(row: number): void {
-        const startX = 200;
-        const gap = 205;
-        const y = 50 + row * 105 + 55;
-
-        this.winLineGraphics.moveTo(startX, y);
-        this.winLineGraphics.lineTo(startX + gap * 2, y);
-
-        this.winLineGraphics.stroke({
-            width: 5,
-            color: 0xffff00,
-        });
     }
 }

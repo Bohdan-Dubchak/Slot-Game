@@ -1,4 +1,4 @@
-import {Application, type Renderer} from 'pixi.js';
+import {Application,  type Renderer,} from 'pixi.js';
 import {GameScene} from "../scenes/GameScene.ts";
 import {Loader} from "./Loader.ts";
 
@@ -19,6 +19,7 @@ export class App {
 
         // чекаємо завантаження ресурсів
         await Loader.load();
+
 
         this.start();
     }

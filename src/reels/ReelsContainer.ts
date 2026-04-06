@@ -1,4 +1,4 @@
-import { Container } from "pixi.js";
+import {Container, Assets, Sprite} from "pixi.js";
 import { Reel } from "./Reels.ts";
 
 export class ReelsContainer extends Container {
@@ -7,10 +7,27 @@ export class ReelsContainer extends Container {
 
     constructor(reelsCount: number) {
         super();
+        this.createFon();
         this.reelCount = reelsCount;
         this.createReels();
+
     }
 
+    private createFon(): void {
+        const texture = Assets.get("/assets/Fon/Reels.png");
+        const bg = new Sprite(texture);
+
+        bg.x = 555;
+        bg.y = -55;
+        bg.width = 550;
+        bg.height = 550;
+        // bg.anchor.set(0.5);
+
+        this.addChild(bg);
+    }
+
+    // Створює масив барабанів (reels), розставляє їх по горизонталі
+    // з відступом (gap) і додає кожен барабан в контейнер сцен
     private createReels() {
         const gap = 150;
 
@@ -18,17 +35,19 @@ export class ReelsContainer extends Container {
             const reel = new Reel();
 
             reel.x = i * gap;
-            reel.y = 50; // Додамо y позицію, як у GameScene
+            reel.y = 30; // Додамо y позицію, як у GameScene
             this.reels.push(reel);
 
             this.addChild(reel);
         }
     }
 
+    // чи хоч один барабан зараз крутиться
     public isAnySpinning(): boolean {
         return this.reels.some(reel => reel.getIsSpinning());
     }
 
+    // Запускає всі барабани і зупиняє їх по черзі з затримкою
     public spinAll(callback: () => void) {
         this.reels.forEach((reel, index) => {
             reel.spin();
