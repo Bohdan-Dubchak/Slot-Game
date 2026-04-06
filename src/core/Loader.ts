@@ -7,7 +7,6 @@ export class Loader {
             '/assets/symbols/lemon.png',
             '/assets/symbols/seven.png',
             '/assets/symbols/bar.png',
-            '/assets/Fon/Reels.png',
         ]);
     }
 }
