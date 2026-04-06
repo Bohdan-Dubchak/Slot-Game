@@ -1,6 +1,6 @@
 import { Container,  Sprite, Text, TextStyle, Ticker, Assets} from "pixi.js";
 import {gsap } from "gsap";
-import {GlowFilter } from "@pixi/filter-glow"
+import { GlowFilter } from "@pixi/filter-glow"
 import { ReelsContainer } from "../reels/ReelsContainer";
 import { SpinButton } from "../ui/SpinButton";
 import { BetButton } from "../ui/BetButton";
@@ -157,8 +157,8 @@ export class GameScene extends Container {
     // Створює HUD (текстові елементи: баланс, ставка, повідомлення про виграш)
     private createHUD(): void {
         const winStyle = new TextStyle({
-            fontSize: 100,
-            fill: "#15448a",
+            fontSize: 150,
+            fill: "#14bd90",
             fontWeight: "bold",
         });
 
