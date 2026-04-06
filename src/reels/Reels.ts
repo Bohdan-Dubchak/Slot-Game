@@ -31,6 +31,8 @@ export class Reel extends Container {
         Ticker.shared.add(this.update, this);
     }
 
+     // Створює маску для обмеження видимості символів
+     // Показує тільки 3 символи (330px висота = 3 * 110px)
     private createMask(): void {
         const mask = new Graphics();
         mask.rect(0, 0, this.symbolSize, this.reelHeight);
@@ -40,6 +42,7 @@ export class Reel extends Container {
         this.symbolsContainer.mask = mask;
     }
 
+    // Завантажує текстури всіх символів з Assets
     private loadTextures(): void {
         this.symbolMap = [
             { id: "cherry", texture: Assets.get("/assets/symbols/cherry.png") },
@@ -49,11 +52,14 @@ export class Reel extends Container {
         ];
     }
 
+    // Повертає випадковий символ з доступних
     private getRandomSymbol(): SymbolData {
         const index = Math.floor(Math.random() * this.symbolMap.length);
         return this.symbolMap[index];
     }
 
+    // Створює початковий набір з 5 символів для барабана
+    // 5 символів потрібно для безперервної прокрутки (3 видимі + 2 буферні)
     private createSymbols(): void {
         for (let i = 0; i < 5; i++) {
             const { id, texture } = this.getRandomSymbol();
@@ -71,6 +77,7 @@ export class Reel extends Container {
         }
     }
 
+    // Встановлює цільову швидкість для плавного старту, запуск
     public spin(): void {
         if (this.isSpinning) return;
 
@@ -79,14 +86,23 @@ export class Reel extends Container {
         this.targetSpeed = 10;
     }
 
+    // Зупиняє барабан
     public stop(): void {
         this.targetSpeed = 0;
     }
 
+    // Перевіряє чи барабан зараз крутиться
     public getIsSpinning(): boolean {
         return this.isSpinning;
     }
 
+    /**
+      Основний цикл анімації (викликається кожен кадр через Ticker)
+      - Плавно змінює швидкість до targetSpeed
+      - Рухає символи вниз
+      - Переміщує символи, що вийшли за межі, нагору з новою текстурою
+      - Вирівнює символи по сітці при зупинці
+     */
     private update(): void {
         if (this.speed < this.targetSpeed) {
             this.speed += 0.5;
@@ -113,6 +129,7 @@ export class Reel extends Container {
         }
     }
 
+    // Вирівнює всі символи по сітці після зупинки
     private snapToGrid(): void {
         for (const symbol of this.symbols) {
             const remainder = symbol.y % this.symbolSize;
@@ -125,6 +142,7 @@ export class Reel extends Container {
         }
     }
 
+    //  Повертає ID середнього видимого символа (row 1)
     public getMiddleSymbol(): string {
         const targetY = this.symbolSize;
 
@@ -143,12 +161,15 @@ export class Reel extends Container {
         return (closest as any).symbolId;
     }
 
+    /**
+     Повертає масив ID всіх 3 видимих символів (згори вниз)
+     [0] - верхній, [1] - середній, [2] - нижній
+     */
     public getVisibleSymbols(): string[] {
         const result: string[] = [];
 
         for (let row = 0; row < 3; row++) {
             const targetY = row * this.symbolSize;
-
 
             let closest = this.symbols[0];
             let minDiff = Infinity;
@@ -167,6 +188,7 @@ export class Reel extends Container {
         return result;
     }
 
+    //  Повертає масив Sprite об'єктів всіх 3 видимих символів
     public getVisibleSymbolsSprites(): Sprite[] {
         // Повертає три спрайти по центру (видимий ряд)
         const result: Sprite[] = [];
