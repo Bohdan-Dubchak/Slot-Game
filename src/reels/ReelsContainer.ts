@@ -7,14 +7,15 @@ export class ReelsContainer extends Container {
 
     constructor(reelsCount: number) {
         super();
-        this.createFon();
+        // this.createFon();
         this.reelCount = reelsCount;
         this.createReels();
 
     }
 
+    // @ts-ignore
     private createFon(): void {
-        const texture = Assets.get("/assets/Fon/Reels.png");
+        const texture = Assets.get("/assets/Img/Reels.png");
         const bg = new Sprite(texture);
 
         bg.x = 555;

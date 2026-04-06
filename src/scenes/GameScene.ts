@@ -25,7 +25,7 @@ export class GameScene extends Container {
 
     // Завантажує фон та ініціалізує всі елементи сцени
     private async init(): Promise<void> {
-        await Assets.load('/assets/Fon/BackgroundImage.png');
+        await Assets.load('/assets/Img/BackgroundImage.png');
 
         this.createBackgroundImage(); //  Фото (задній план)
         this.createReels();           //  Барабани
@@ -35,7 +35,7 @@ export class GameScene extends Container {
 
     //  Фото задній
     private createBackgroundImage(): void {
-        const texture = Assets.get('/assets/Fon/BackgroundImage.png');
+        const texture = Assets.get('/assets/Img/BackgroundImage.png');
         const bgSprite = new Sprite(texture);
 
         bgSprite.width = 800;
