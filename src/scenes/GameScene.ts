@@ -157,6 +157,7 @@ export class GameScene extends Container {
     // Створює HUD (текстові елементи: баланс, ставка, повідомлення про виграш)
     private createHUD(): void {
         const winStyle = new TextStyle({
+            fontFamily: "lugio",
             fontSize: 150,
             fill: "#14bd90",
             fontWeight: "bold",
@@ -174,7 +175,8 @@ export class GameScene extends Container {
         this.addChild(this.winText);
 
         const style = new TextStyle({
-            fontSize: 20,
+            fontFamily: 'lugio',
+            fontSize: 25,
             fill: "#ffffff",
             fontWeight: "bold",
         });

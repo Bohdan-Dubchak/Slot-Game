@@ -1,3 +1,9 @@
+@font-face {
+    font-family: "lugio";
+    src: url("../Public/assets/Fonts/Lugio.ttf") format("opentype");
+    font-display: swap;
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
