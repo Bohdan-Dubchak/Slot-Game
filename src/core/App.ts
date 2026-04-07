@@ -15,6 +15,8 @@ export class App {
             background: '#1099bb'
         });
 
+        await loadFonts();
+
         document.body.appendChild(this.app.canvas);
 
         // чекаємо завантаження ресурсів
@@ -32,4 +34,8 @@ export class App {
     get stage() {
         return this.app.stage;
     }
+}
+
+async function loadFonts() {
+    await document.fonts.load('150px "lugio"');
 }

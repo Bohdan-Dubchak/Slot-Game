@@ -12,7 +12,7 @@ export class SpinButton extends Container {
         button.fill(0xff3b3b);
 
         const btnStyle = new TextStyle({
-            fontFamily: 'monospace',
+            fontFamily: 'lugio',
             fontSize: 22,
             fill: '#ffffff',
             fontWeight: 'bold',
