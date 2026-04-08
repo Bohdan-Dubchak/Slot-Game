@@ -4,6 +4,9 @@ export class LoadingScene extends Container {
     private progressBar: Graphics;
     private progressText: Text;
 
+    private displayedProgress: number = 0;
+    private isLoaded: boolean = false;
+
     constructor() {
         super();
 
@@ -12,7 +15,7 @@ export class LoadingScene extends Container {
         // Текст
         const styleText = new TextStyle({
             fontFamily: "lugio",
-            fill: '#ffffff',
+            fill: '#7fbc6e',
             fontSize: 40
         });
 
@@ -23,7 +26,7 @@ export class LoadingScene extends Container {
 
         this.progressText.anchor.set(0.5);
         this.progressText.x = width / 2;
-        this.progressText.y = 250;
+        this.progressText.y = 300;
 
         // Бар
         this.progressBar = new Graphics();
@@ -31,23 +34,28 @@ export class LoadingScene extends Container {
         this.progressBar.y = 300;
 
         // Додаємо до контейнера
-        this.addChild(this.progressText, this.progressBar);
+        this.addChild(this.progressText);
     }
 
     updateProgress(progress: number) {
-        // очищаємо
+        if (progress >= 1) {
+            this.displayedProgress = 1;
+        } else {
+            this.displayedProgress += (progress - this.displayedProgress) * 0.1;
+        }
+
         this.progressBar.clear();
 
-        // фон
-        this.progressBar
-            .rect(0, 0, 500, 20)
-            .fill(0x333333);
+        const percent = Math.floor(this.displayedProgress * 100);
 
-        // прогрес
-        this.progressBar
-            .rect(0, 0, 500 * progress, 20)
-            .fill(0x14bd90);
+        if (percent >= 100 && !this.isLoaded) {
+            setTimeout(() => {
+            this.progressText.text = `Loading ${percent}%`;
+            this.isLoaded = true;
 
-        this.progressText.text = `Loading ${Math.floor(progress * 100)}%`;
+            }, 2000)
+        } else {
+            this.progressText.text = `Loading ${percent}%`;
+        }
     }
 }

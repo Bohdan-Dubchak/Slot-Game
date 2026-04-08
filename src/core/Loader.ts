@@ -11,14 +11,23 @@ export class Loader {
 
         let loaded = 0;
 
-        const promises = assets.map(async (asset) => {
-            await Assets.load(asset);
-            loaded++;
+        for (const asset of assets) {
+            try {
+                await Assets.load(asset);
 
-            const progress = loaded / assets.length;
-            onProgress?.(progress); // передаємо прогрес
-        });
+                loaded++;
 
-        await Promise.all(promises);
+                const progress = loaded / assets.length;
+
+                // додатково робимо fake delay, бо мало файлів і завантаження йде моментально
+                await new Promise(r => setTimeout(r, 200));
+
+                onProgress?.(progress);
+            } catch (error) {
+                console.warn(`Failed to load asset: ${asset}`, error);
+            }
+
+        }
+
     }
 }
