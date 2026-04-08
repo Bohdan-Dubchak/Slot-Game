@@ -16,7 +16,6 @@ export class GameScene extends Container {
 
     private winText!: Text;
 
-
     constructor() {
         super();
 
@@ -47,7 +46,6 @@ export class GameScene extends Container {
     }
 
     // Анімація пульсації виграшних символів
-    // @ts-ignore
     private animateWinSymbols(symbols: Sprite[]): void {
         symbols.forEach((sprite) => {
             const originalScale = sprite.scale.x;

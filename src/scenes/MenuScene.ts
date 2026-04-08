@@ -7,17 +7,17 @@ export class MenuScene extends Container {
         const style = new TextStyle({
             fontFamily: 'lugio',
             fontSize: 100,
-            fill: "#14bd90",
+            fill: "rgba(32,32,126,0.53)",
         });
 
         const title = new Text({
-            text: "My Game",
+            text: "Game Slot",
             style: style
         });
 
         title.anchor.set(0.5);
         title.x = 400;
-        title.y = 200;
+        title.y = 150;
 
         const styleBtn = new TextStyle({
             fontFamily: 'lugio',
@@ -34,12 +34,16 @@ export class MenuScene extends Container {
         startBtn.x = 400;
         startBtn.y = 400;
 
-        startBtn.eventMode = 'static';
         startBtn.cursor = 'pointer';
 
         startBtn.on('pointerdown', () => {
             startCallback();
         });
+
+        setTimeout(() => {
+            startBtn.alpha = 1;
+            startBtn.eventMode = 'static';
+        }, 300)
 
         this.addChild(title, startBtn);
     }

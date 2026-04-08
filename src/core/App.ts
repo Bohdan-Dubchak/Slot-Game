@@ -15,7 +15,7 @@ export class App {
         await this.app.init({
             width: 800,
             height: 600,
-            background: '#1099bb'
+            background: 'rgba(6,6,14,0.53)'
         });
 
         const loadingScene = new LoadingScene();
@@ -30,13 +30,8 @@ export class App {
 
         document.body.appendChild(this.app.canvas);
 
-        // чекаємо завантаження ресурсів
-        await Loader.load();
-
         this.showMenu();
 
-
-        // this.start();
     }
 
     private showMenu(): void {
@@ -65,16 +60,9 @@ export class App {
         }
     }
 
-
-    // private start(): void {
-    //     const gameScene = new GameScene();
-    //     this.app.stage.addChild(gameScene);
-    // }
-
     get stage() {
         return this.app.stage;
     }
-
 
 }
 
