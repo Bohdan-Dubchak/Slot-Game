@@ -15,8 +15,13 @@ export class App {
         await this.app.init({
             width: 800,
             height: 600,
-            background: 'rgba(6,6,14,0.53)'
+            background: '#0c0c1e',
+            backgroundAlpha: 0.53
         });
+
+        // застосовуємо стиль до canvas
+        this.app.canvas.style.borderRadius = '20px';
+        this.app.canvas.style.overflow = 'hidden';
 
         const loadingScene = new LoadingScene();
         this.app.stage.addChild(loadingScene);

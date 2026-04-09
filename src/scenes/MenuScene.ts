@@ -1,4 +1,5 @@
 import {Container, Text, TextStyle} from "pixi.js";
+import {StartButton} from "../ui/startButton.ts";
 
 export class MenuScene extends Container {
     constructor(startCallback: () => void) {
@@ -7,7 +8,7 @@ export class MenuScene extends Container {
         const style = new TextStyle({
             fontFamily: 'lugio',
             fontSize: 100,
-            fill: "rgba(32,32,126,0.53)",
+            fill: "rgba(21,21,228,0.53)",
         });
 
         const title = new Text({
@@ -19,31 +20,17 @@ export class MenuScene extends Container {
         title.x = 400;
         title.y = 150;
 
-        const styleBtn = new TextStyle({
-            fontFamily: 'lugio',
-            fontSize: 60,
-            fill: "#ffffff",
-        });
+        // Створюємо кнопку з колбеком
+        const startBtn = new StartButton(startCallback);
 
-        const startBtn = new Text({
-            text: "Start",
-            style: styleBtn,
-        });
+        startBtn.x = 325;
+        startBtn.y = 370;
 
-        startBtn.anchor.set(0.5);
-        startBtn.x = 400;
-        startBtn.y = 400;
-
-        startBtn.cursor = 'pointer';
-
-        startBtn.on('pointerdown', () => {
-            startCallback();
-        });
-
+        // Анімація появи (опціонально)
+        startBtn.alpha = 0;
         setTimeout(() => {
             startBtn.alpha = 1;
-            startBtn.eventMode = 'static';
-        }, 300)
+        }, 300);
 
         this.addChild(title, startBtn);
     }
