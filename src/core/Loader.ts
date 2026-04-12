@@ -7,7 +7,11 @@ export class Loader {
             '/assets/symbols/lemon.png',
             '/assets/symbols/seven.png',
             '/assets/symbols/bar.png',
-            '/assets/Button/Spin.png'
+            '/assets/Button/Spin.png',
+            '/assets/Button/Start.png',
+            '/assets/Button/Plus.png',
+            '/assets/Button/Minus.png',
+            '/assets/frames/Rectangle.png'
         ];
 
         let loaded = 0;
