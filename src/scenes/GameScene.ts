@@ -8,11 +8,14 @@ import { BetButton } from "../ui/BetButton";
 export class GameScene extends Container {
     private reelsContainer!: ReelsContainer;
 
-    private balance: number = 100;
+    private balance: number = 10000156;
     private bet: number = 5;
 
-    private balanceText!: Text;
-    private betText!: Text;
+    private balanceLabel!: Text;
+    private balanceValue!: Text;
+
+    private betLabel!: Text;
+    private betValue!: Text;
 
     private winText!: Text;
 
@@ -27,6 +30,7 @@ export class GameScene extends Container {
         await Assets.load('/assets/Img/BackgroundImage.png');
 
         this.createBackgroundImage(); //  Фото (задній план)
+        this.createBoxBet();             //  box
         this.createReels();           //  Барабани
         this.createUI();              //  Кнопки
         this.createHUD();             //  Текст
@@ -41,6 +45,20 @@ export class GameScene extends Container {
         bgSprite.height = 600;
         bgSprite.x = 0;
         bgSprite.y = 0;
+
+        this.addChild(bgSprite);
+    }
+
+    // Фото box
+    private createBoxBet(): void {
+        const texture = Assets.get('/assets/frames/Rectangle.png');
+        const bgSprite = new Sprite(texture);
+
+        bgSprite.anchor.set(0.5);
+        bgSprite.width = 120;
+        bgSprite.height = 28;
+        bgSprite.x = 130;
+        bgSprite.y = 525;
 
         this.addChild(bgSprite);
     }
@@ -110,19 +128,46 @@ export class GameScene extends Container {
 
     // Створює UI кнопки: ставка плюс/мінус та спін
     private createUI(): void {
+        let interval: any = null;
+
         // Кнопка збільшення ставки
-        const plusButton = new BetButton("+", () => {
+        const plusButton = new BetButton('/assets/Button/Plus.png', () => {
             this.bet += 5;
             if (this.bet > this.balance) this.bet = this.balance;
             this.updateHUD();
         });
 
+        plusButton.on('pointerdown', () => {
+            interval = setInterval(() => {
+                this.bet += 5;
+                if (this.bet > this.balance) this.bet = this.balance;
+                this.updateHUD()
+            }, 190)
+        })
+
+        const stop = () => {
+            if (interval) {
+                clearInterval(interval);
+                interval = null;
+            }
+        }
+
         // Кнопка зменшення ставки
-        const minusButton = new BetButton("-", () => {
+        const minusButton = new BetButton('/assets/Button/Minus.png', () => {
             this.bet -= 5;
             if (this.bet < 5) this.bet = 5;
             this.updateHUD();
         });
+
+        minusButton.on('pointerdown', () => {
+            interval = setInterval(() => {
+                this.bet -= 5;
+                if (this.bet < 5) this.bet = 5;
+                this.updateHUD();
+            }, 190)
+        })
+        plusButton.on('pointerup', stop);
+        minusButton.on('pointerup', stop);
 
         plusButton.position.set(200, 500);
         minusButton.position.set(20, 500);
@@ -159,6 +204,7 @@ export class GameScene extends Container {
             fontSize: 150,
             fill: "#14bd90",
             fontWeight: "bold",
+            align: 'center'
         });
 
         this.winText = new Text({
@@ -177,22 +223,47 @@ export class GameScene extends Container {
             fontSize: 25,
             fill: "#ffffff",
             fontWeight: "bold",
+            align: 'center'
         });
 
-        this.balanceText = new Text({
-            text: `Balance: ${this.balance}`,
+        this.balanceLabel = new Text({
+            text: "Balance $",
             style,
         });
 
-        this.betText = new Text({
-            text: `Bet: ${this.bet}`,
+        this.balanceValue = new Text({
+            text: `${this.balance}`,
             style,
         });
 
-        this.balanceText.position.set(600, 512);
-        this.betText.position.set(80, 512);
+        this.balanceLabel.anchor.set(0.5);
+        this.balanceValue.anchor.set(0.5);
 
-        this.addChild(this.balanceText, this.betText);
+        this.balanceLabel.position.set(700, 500);
+        this.balanceValue.position.set(700, 530);
+
+        this.betLabel = new Text({
+            text: "\tBet $",
+            style,
+        });
+
+        this.betValue = new Text({
+            text: `${this.bet}`,
+            style,
+        });
+
+        this.betLabel.anchor.set(0.5);
+        this.betValue.anchor.set(0.5);
+
+        this.betLabel.position.set(128, 493);
+        this.betValue.position.set(128, 526);
+
+        this.addChild(
+            this.balanceLabel,
+            this.balanceValue,
+            this.betLabel,
+            this.betValue
+        );
     }
 
     // Показує анімацію виграшу на екрані
@@ -227,8 +298,17 @@ export class GameScene extends Container {
 
     // Оновлює HUD (баланс і ставка)
     private updateHUD(): void {
-        this.balanceText.text = `Balance: ${this.balance}`;
-        this.betText.text = `Bet: ${this.bet}`;
+        const obj = { value: Number(this.balanceValue.text) };
+
+        gsap.to(obj, {
+            value: this.balance,
+            duration: 0.4,
+            onUpdate: () => {
+                this.balanceValue.text = Math.floor(obj.value).toString();
+            }
+        });
+
+        this.betValue.text = `${this.bet}`;
     }
 
     // Таблиця виплат (paytable) для символів

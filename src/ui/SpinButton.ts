@@ -1,4 +1,4 @@
-import { Container, Sprite, Text, TextStyle, Assets, Rectangle } from "pixi.js";
+import { Container, Sprite, Assets, Rectangle } from "pixi.js";
 import { gsap } from 'gsap';
 
 export class SpinButton extends Container {
@@ -17,25 +17,14 @@ export class SpinButton extends Container {
         bg.width = 150;
         bg.height = 150;
 
-        const style = new TextStyle({
-            fontFamily: 'lugio',
-            fontSize: 22,
-            fill: '#ffffff',
-            fontWeight: 'bold',
-        });
+        bg.anchor.set(0.5);
 
-        const btnText = new Text({
-            text: "",
-            style: style,
-        });
+        bg.x = bg.x;
+        bg.y = bg.y;
 
-        btnText.anchor.set(0.5);
-        btnText.x = bg.x;
-        btnText.y = bg.y;
+        this.addChild(bg);
 
-        this.addChild(bg, btnText);
-
-        // ✅ hitArea на контейнері, враховуємо позицію bg
+        // hitArea на контейнері, враховуємо позицію bg
         this.hitArea = new Rectangle(
             bg.x - bg.width / 2,   // 90 - 100 = -10
             bg.y - bg.height / 2,  // 20 - 100 = -80
