@@ -8,7 +8,7 @@ import { BetButton } from "../ui/BetButton";
 export class GameScene extends Container {
     private reelsContainer!: ReelsContainer;
 
-    private balance: number = 10000156;
+    private balance: number = 100000;
     private bet: number = 5;
 
     private balanceLabel!: Text;
@@ -31,6 +31,7 @@ export class GameScene extends Container {
 
         this.createBackgroundImage(); //  Фото (задній план)
         this.createBoxBet();             //  box
+        this.createBoxBalance();
         this.createReels();           //  Барабани
         this.createUI();              //  Кнопки
         this.createHUD();             //  Текст
@@ -62,6 +63,21 @@ export class GameScene extends Container {
 
         this.addChild(bgSprite);
     }
+
+    // Фото Balance
+    private createBoxBalance(): void {
+        const texture = Assets.get('/assets/frames/Rectangle.png');
+        const bgSprite = new Sprite(texture);
+
+        bgSprite.anchor.set(0.5);
+        bgSprite.width = 150;
+        bgSprite.height = 28;
+        bgSprite.x = 660;
+        bgSprite.y = 530;
+
+        this.addChild(bgSprite);
+    }
+
 
     // Анімація пульсації виграшних символів
     private animateWinSymbols(symbols: Sprite[]): void {
@@ -239,8 +255,8 @@ export class GameScene extends Container {
         this.balanceLabel.anchor.set(0.5);
         this.balanceValue.anchor.set(0.5);
 
-        this.balanceLabel.position.set(700, 500);
-        this.balanceValue.position.set(700, 530);
+        this.balanceLabel.position.set(665, 500);
+        this.balanceValue.position.set(665, 530);
 
         this.betLabel = new Text({
             text: "\tBet $",
