@@ -3,6 +3,7 @@ import {GameScene} from "../scenes/GameScene.ts";
 import {MenuScene} from "../scenes/MenuScene.ts";
 import {LoadingScene} from "../scenes/LoadingScene.ts";
 import {Loader} from "./Loader.ts";
+import { loadSounds} from "../systems/Sound.ts";
 
 export class App {
     private app: Application<Renderer>;
@@ -18,6 +19,8 @@ export class App {
             background: '#0c0c1e',
             backgroundAlpha: 0.53
         });
+
+        await loadSounds();
 
         // застосовуємо стиль до canvas
         this.app.canvas.style.borderRadius = '20px';

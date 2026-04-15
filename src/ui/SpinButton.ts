@@ -4,7 +4,6 @@ import { gsap } from 'gsap';
 export class SpinButton extends Container {
     constructor(onClick: () => void) {
         super();
-
         this.eventMode = "static";
         this.cursor = "pointer";
 
@@ -32,10 +31,9 @@ export class SpinButton extends Container {
             bg.height              // 200
         );
 
-        this.on('pointerdown', onClick);
-
         this.on('pointerdown', () => {
             gsap.to(this.scale, { x: 0.95, y: 0.95, duration: 0.1 });
+            onClick();
         });
 
         this.on('pointerup', () => {

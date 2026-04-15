@@ -4,6 +4,7 @@ import { GlowFilter } from "@pixi/filter-glow"
 import { ReelsContainer } from "../reels/ReelsContainer";
 import { SpinButton } from "../ui/SpinButton";
 import { BetButton } from "../ui/BetButton";
+import {sound} from "@pixi/sound";
 
 export class GameScene extends Container {
     private reelsContainer!: ReelsContainer;
@@ -199,6 +200,19 @@ export class GameScene extends Container {
                 return;
             }
 
+            // СТАРТ ЗВУКУ
+            sound.play('Reel', { loop: true });
+
+            this.balance -= this.bet;
+            this.updateHUD();
+
+            this.reelsContainer.spinAll(() => {
+                // СТОП ЗВУКУ
+                this.stopSpinSound();
+
+                this.checkWin();
+            });
+
             // Віднімаємо ставку з балансу
             this.balance -= this.bet;
             this.updateHUD();
@@ -211,6 +225,22 @@ export class GameScene extends Container {
 
         spinButton.position.set(325, 500);
         this.addChild(spinButton);
+    }
+
+    // функція stop sound
+    private stopSpinSound(): void {
+        const spinSound = sound.find('Reel');
+
+        if (spinSound) {
+            gsap.to(spinSound, {
+                volume: 0,
+                duration: 0.3,
+                onComplete: () => {
+                    sound.stop('Reel');
+                    spinSound.volume = 1; // повертаємо назад
+                }
+            })
+        }
     }
 
     // Створює HUD (текстові елементи: баланс, ставка, повідомлення про виграш)
@@ -373,6 +403,7 @@ export class GameScene extends Container {
             this.balance += totalWin;
             this.updateHUD();
             this.showWin(totalWin);
+            sound.play('Win');
         } else {
             console.log("❌ LOSE");
         }

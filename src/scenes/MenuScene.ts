@@ -1,5 +1,6 @@
-import {Container, Text, TextStyle} from "pixi.js";
-import {StartButton} from "../ui/startButton.ts";
+import { Container, Text, TextStyle } from "pixi.js";
+import { StartButton } from "../ui/startButton.ts";
+import { gsap } from "gsap";
 
 export class MenuScene extends Container {
     constructor(startCallback: () => void) {
@@ -17,20 +18,18 @@ export class MenuScene extends Container {
         });
 
         title.anchor.set(0.5);
-        title.x = 400;
-        title.y = 150;
+        title.position.set(400, 150);
 
-        // Створюємо кнопку з колбеком
         const startBtn = new StartButton(startCallback);
+        startBtn.position.set(325, 370);
 
-        startBtn.x = 325;
-        startBtn.y = 370;
-
-        // Анімація появи (опціонально)
         startBtn.alpha = 0;
-        setTimeout(() => {
-            startBtn.alpha = 1;
-        }, 300);
+
+        gsap.to(startBtn, {
+            alpha: 1,
+            duration: 0.5,
+            delay: 0.3
+        });
 
         this.addChild(title, startBtn);
     }
