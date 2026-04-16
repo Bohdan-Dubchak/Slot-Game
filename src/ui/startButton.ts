@@ -27,16 +27,17 @@ export class StartButton extends Container {
         );
 
         this.on('pointerdown', async () => {
+            gsap.to(this.scale, { x: 0.95, y: 0.95, duration: 0.1 });
+
             if (sound.context.audioContext.state !== 'running') {
                 await sound.context.audioContext.resume();
             }
 
             sound.play('Button', { singleInstance: true });
 
-            gsap.to(this.scale, { x: 0.95, y: 0.95, duration: 0.1 });
 
             onClick();
-        });
+        }, { once: true });
 
         this.on('pointerup', () => {
             gsap.to(this.scale, { x: 1, y: 1, duration: 0.1 });

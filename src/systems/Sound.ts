@@ -4,6 +4,7 @@ export const sounds = {
     Win: '/audio/win.mp3',
     Reel: '/audio/reel.mp3',
     Button: "/audio/Button.mp3",
+    loop: '/audio/Game-loop.mp3',
 }
 
 export async function loadSounds() {

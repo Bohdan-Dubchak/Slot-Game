@@ -34,7 +34,7 @@ export class SpinButton extends Container {
         this.on('pointerdown', () => {
             gsap.to(this.scale, { x: 0.95, y: 0.95, duration: 0.1 });
             onClick();
-        });
+        }, { once: true });
 
         this.on('pointerup', () => {
             gsap.to(this.scale, { x: 1, y: 1, duration: 0.1 });

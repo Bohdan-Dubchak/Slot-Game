@@ -155,6 +155,8 @@ export class GameScene extends Container {
         });
 
         plusButton.on('pointerdown', () => {
+            sound.play('Button');
+
             interval = setInterval(() => {
                 this.bet += 5;
                 if (this.bet > this.balance) this.bet = this.balance;
@@ -177,6 +179,8 @@ export class GameScene extends Container {
         });
 
         minusButton.on('pointerdown', () => {
+            sound.play('Button');
+
             interval = setInterval(() => {
                 this.bet -= 5;
                 if (this.bet < 5) this.bet = 5;
