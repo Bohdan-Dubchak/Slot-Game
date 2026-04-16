@@ -4,10 +4,12 @@ import {MenuScene} from "../scenes/MenuScene.ts";
 import {LoadingScene} from "../scenes/LoadingScene.ts";
 import {Loader} from "./Loader.ts";
 import { loadSounds} from "../systems/Sound.ts";
+import { sound} from "@pixi/sound";
 
 export class App {
     private app: Application<Renderer>;
     private currentScene: Container | null = null;
+    private musicStarted = false;
     constructor() {
         this.app = new Application();
     }
@@ -21,6 +23,21 @@ export class App {
         });
 
         await loadSounds();
+
+        window.addEventListener("pointerdown", async () => {
+            if (this.musicStarted) return;
+
+            this.musicStarted = true;
+
+            if (sound.context.audioContext.state !== 'running') {
+                await sound.context.audioContext.resume();
+            }
+
+            sound.play("loop", {
+                loop: true,
+                volume: 0.3,
+            });
+        }, {once: true});
 
         // застосовуємо стиль до canvas
         this.app.canvas.style.borderRadius = '20px';
