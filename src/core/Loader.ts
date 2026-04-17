@@ -11,7 +11,8 @@ export class Loader {
             '/assets/Button/Start.png',
             '/assets/Button/Plus.png',
             '/assets/Button/Minus.png',
-            '/assets/frames/Rectangle.png'
+            '/assets/frames/Rectangle.png',
+            '/assets/Img/Reels.png'
         ];
 
         let loaded = 0;
