@@ -12,7 +12,9 @@ export class Loader {
             '/assets/Button/Plus.png',
             '/assets/Button/Minus.png',
             '/assets/frames/Rectangle.png',
-            '/assets/Img/Reels.png'
+            '/assets/Img/Reels.png',
+            '/assets/soundButton/soundOFF.png',
+            '/assets/soundButton/soundON.png',
         ];
 
         let loaded = 0;
