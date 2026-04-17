@@ -1,6 +1,7 @@
-import { Container,  Sprite, Text, TextStyle, Ticker, Assets} from "pixi.js";
+import { Container,  Sprite, Text, TextStyle, Assets} from "pixi.js";
 import {gsap } from "gsap";
-import { GlowFilter } from "@pixi/filter-glow"
+import { animateWinSymbols } from "../animations/AnimationWinSymbols.ts"
+import { WinTextAnimation } from "../animations/AnimationShowWin.ts"
 import { ReelsContainer } from "../reels/ReelsContainer";
 import { SpinButton } from "../ui/SpinButton";
 import { BetButton } from "../ui/BetButton";
@@ -18,11 +19,10 @@ export class GameScene extends Container {
     private betLabel!: Text;
     private betValue!: Text;
 
-    private winText!: Text;
+    private winText!: WinTextAnimation; // Змінено тип
 
     constructor() {
         super();
-
         this.init();
     }
 
@@ -79,63 +79,7 @@ export class GameScene extends Container {
         this.addChild(bgSprite);
     }
 
-
-    // Анімація пульсації виграшних символів
-    private animateWinSymbols(symbols: Sprite[]): void {
-        symbols.forEach((sprite) => {
-            const originalScale = sprite.scale.x;
-            let step = 0;
-            const duration = 15;
-
-            const ticker = new Ticker();
-            ticker.add(() => {
-                step++;
-                const progress = step / duration;
-
-                // Пульсація: збільшення -> повернення
-                const scale = originalScale * (1 + Math.sin(progress * Math.PI) * 0.3);
-                sprite.scale.set(scale);
-
-                if (step >= duration) {
-                    ticker.stop();
-                    ticker.destroy();
-                    sprite.scale.set(originalScale);
-                }
-            });
-            ticker.start();
-        });
-    }
-
-    // Виділяє виграшні символи зеленим світінням (Glow) з анімацією пульсації  !!! --не працює--
-    // @ts-ignore
-    private highlightWinSymbols(symbols: Sprite[]): void {
-    symbols.forEach(sprite => {
-        // Створюємо Glow фільтр один раз
-        const glow = new GlowFilter({
-            distance: 15,
-            outerStrength: 4,
-            innerStrength: 0,
-            color: 0x33ff55,
-            quality: 0.5,
-        });
-        glow.padding = 20;
-        sprite.filters = [glow as any];
-
-        // Анімація пульсації outerStrength через Tween
-        gsap.to(glow, {
-            outerStrength: 6,       // максимальна сила світіння
-            duration: 0.3,          // тривалість одного циклу
-            yoyo: true,             // назад
-            repeat: 5,              // кількість пульсацій
-            ease: "sine.inOut",     // плавна функція easing
-            onComplete: () => {
-                sprite.filters = null; // прибираємо Glow після анімації
-            }
-        });
-    });
-}
-
-    // Створює об’єкт ReelsContainer та додає його у сцену
+    // Створює об'єкт ReelsContainer та додає його у сцену
     private createReels(): void {
         this.reelsContainer = new ReelsContainer(3);
         this.reelsContainer.position.set(200, 50);
@@ -187,6 +131,7 @@ export class GameScene extends Container {
                 this.updateHUD();
             }, 190)
         })
+
         plusButton.on('pointerup', stop);
         minusButton.on('pointerup', stop);
 
@@ -207,23 +152,17 @@ export class GameScene extends Container {
             // СТАРТ ЗВУКУ
             sound.play('Reel', { loop: true });
 
-            this.balance -= this.bet;
-            this.updateHUD();
-
-            this.reelsContainer.spinAll(() => {
-                // СТОП ЗВУКУ
-                this.stopSpinSound();
-
-                this.checkWin();
-            });
-
             // Віднімаємо ставку з балансу
             this.balance -= this.bet;
             this.updateHUD();
 
             // Запускаємо спін усіх барабанів
             this.reelsContainer.spinAll(() => {
-                this.checkWin(); // Перевіряємо виграш після зупинки
+                // СТОП ЗВУКУ
+                this.stopSpinSound();
+
+                // Перевіряємо виграш після зупинки
+                this.checkWin();
             });
         });
 
@@ -249,23 +188,9 @@ export class GameScene extends Container {
 
     // Створює HUD (текстові елементи: баланс, ставка, повідомлення про виграш)
     private createHUD(): void {
-        const winStyle = new TextStyle({
-            fontFamily: "lugio",
-            fontSize: 150,
-            fill: "#14bd90",
-            fontWeight: "bold",
-            align: 'center'
-        });
-
-        this.winText = new Text({
-            text: "",
-            style: winStyle,
-        });
-
-        this.winText.anchor.set(0.5);
+        // Створюємо WinTextAnimation замість Text
+        this.winText = new WinTextAnimation();
         this.winText.position.set(400, 300);
-        this.winText.visible = false;
-
         this.addChild(this.winText);
 
         const style = new TextStyle({
@@ -314,36 +239,6 @@ export class GameScene extends Container {
             this.betLabel,
             this.betValue
         );
-    }
-
-    // Показує анімацію виграшу на екрані
-    private showWin(amount: number): void {
-        this.winText.text = `WIN +${amount}`;
-        this.winText.visible = true;
-        this.winText.alpha = 0;
-        this.winText.scale.set(0.5);
-
-        let step = 0;
-        const duration = 15;
-
-        const ticker = new Ticker();
-        ticker.add(() => {
-            step++;
-
-            this.winText.alpha = Math.min(1, step / duration);
-            const scale = 0.5 + (step / duration) * 0.5;
-            this.winText.scale.set(scale);
-
-            if (step >= duration) {
-                ticker.stop();
-                ticker.destroy();
-
-                setTimeout(() => {
-                    this.winText.visible = false;
-                }, 1500);
-            }
-        });
-        ticker.start();
     }
 
     // Оновлює HUD (баланс і ставка)
@@ -398,18 +293,15 @@ export class GameScene extends Container {
                     reel.getVisibleSymbolsSprites()[line[i]]
                 );
 
-                // this.highlightWinSymbols(winSprites);
-                this.animateWinSymbols(winSprites);
+                animateWinSymbols(winSprites);
             }
         });
 
         if (totalWin > 0) {
             this.balance += totalWin;
             this.updateHUD();
-            this.showWin(totalWin);
+            this.winText.show(totalWin); // Викликаємо show на WinTextAnimation
             sound.play('Win');
-        } else {
-            console.log("❌ LOSE");
         }
     }
 }
