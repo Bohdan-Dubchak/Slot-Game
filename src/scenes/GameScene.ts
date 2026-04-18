@@ -7,11 +7,12 @@ import { SpinButton } from "../ui/SpinButton";
 import { BetButton } from "../ui/BetButton";
 import { SoundToggleButton } from "../ui/SoundButton";
 import { SoundManager } from "../core/SoundManager";
+import { AutoSpinButton } from "../ui/AutoSpinButton";
 
 export class GameScene extends Container {
     private reelsContainer!: ReelsContainer;
 
-    private balance: number = 100000;
+    private balance: number = 1000;
     private bet: number = 5;
 
     private balanceLabel!: Text;
@@ -22,6 +23,8 @@ export class GameScene extends Container {
 
     private winText!: WinTextAnimation;
     private soundManager!: SoundManager;
+
+    private isAutoSpin: boolean = false;
 
     constructor() {
         super();
@@ -124,7 +127,7 @@ export class GameScene extends Container {
         plusButton.on('pointerup', stop);
         plusButton.on('pointerupoutside', stop);
 
-        // ➖ MINUS
+        // MINUS
         const minusButton = new BetButton('/assets/Button/Minus.png', () => {
             this.bet -= 5;
             if (this.bet < 5) this.bet = 5;
@@ -167,6 +170,39 @@ export class GameScene extends Container {
 
         spinButton.position.set(325, 500);
         this.addChild(spinButton);
+
+        const autoButton = new AutoSpinButton(() => {
+            this.isAutoSpin = !this.isAutoSpin;
+
+            if (this.isAutoSpin && !this.reelsContainer.isAnySpinning()) {
+                this.spin();
+            }
+        });
+
+        autoButton.position.set(450, 500);
+        this.addChild(autoButton);
+    }
+
+    private spin(): void {
+        if (this.reelsContainer.isAnySpinning()) return;
+        if (this.balance < this.bet) {
+            this.isAutoSpin = false;
+            return;
+        }
+
+        this.soundManager.play('Reel', { loop: true });
+
+        this.balance -= this.bet;
+        this.updateHUD();
+
+        this.reelsContainer.spinAll(() => {
+            this.stopSpinSound();
+            this.checkWin();
+
+            if (this.isAutoSpin) {
+                setTimeout(() => this.spin(), 500);
+            }
+        });
     }
 
     private stopSpinSound(): void {
