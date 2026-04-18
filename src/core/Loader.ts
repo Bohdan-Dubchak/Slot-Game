@@ -15,6 +15,7 @@ export class Loader {
             '/assets/Img/Reels.png',
             '/assets/soundButton/soundOFF.png',
             '/assets/soundButton/soundON.png',
+            '/assets/Button/AutoSpin.png'
         ];
 
         let loaded = 0;
